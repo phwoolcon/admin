@@ -6,7 +6,7 @@ return [
         ],
         'class_aliases' => [
             10 => [
-                'Admin' => 'Phwoolcon\Admin\Auth',
+                'AdminAuth' => 'Phwoolcon\Admin\Auth',
                 'Acl' => 'Phwoolcon\Admin\Acl',
             ],
         ],
