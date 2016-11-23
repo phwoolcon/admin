@@ -1,0 +1,33 @@
+{
+    "name": "phwoolcon/admin",
+    "description": "Admin module for Phwoolcon",
+    "keywords": ["phwoolcon", "admin", "phalcon", "swoole"],
+    "type": "library",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Christopher CHEN",
+            "email": "fishdrowned@gmail.com"
+        },
+        {
+            "name": "Goodspb",
+            "email": "luoshaohao@appgame.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.5.0",
+        "phwoolcon/phwoolcon": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {"Phwoolcon\\Admin\\": "src"}
+    },
+    "bin": [
+        "phwoolcon-package/phwoolcon-package-admin.php"
+    ],
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
