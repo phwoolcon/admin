@@ -30,5 +30,6 @@ return [
     'acl' => [
         'cache_key' => 'admin_acl_adapter',
         'superuser_role' => 'admin',
+        'default_role' => 'default',
     ],
 ];

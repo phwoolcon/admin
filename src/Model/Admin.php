@@ -2,6 +2,7 @@
 namespace Phwoolcon\Admin\Model;
 
 use Phwoolcon\Admin\Model\Acl\Role;
+use Phwoolcon\Config;
 use Phwoolcon\Model;
 
 /**
@@ -9,7 +10,7 @@ use Phwoolcon\Model;
  * @package Phwoolcon\Admin\Model
  *
  * @property array  $brief_roles
- * @property Role[] $roles
+ * @property Role[]|\Phalcon\Mvc\Model\Resultset\Simple $roles
  */
 class Admin extends Model
 {
@@ -37,7 +38,18 @@ class Admin extends Model
     protected function prepareSave()
     {
         $briefRoles = [];
-        if ($this->roles) {
+        if ($this->_isNew && !count($this->roles)) {
+            $roleModel = Role::class;
+            if ($this->_dependencyInjector->has($roleModel)) {
+                $roleModel = $this->_dependencyInjector->getRaw($roleModel);
+            }
+            /* @var Role $roleModel */
+            $roleName = Config::get(static::findFirst() ? 'admin.acl.default_role' : 'admin.acl.superuser_role');
+            $defaultRole = $roleModel::findFirstSimple(['name' => $roleName]);
+            $this->roles = [$defaultRole];
+            $this->_related['roles'] = [$defaultRole];
+        }
+        if (count($this->roles)) {
             foreach ($this->roles as $role) {
                 $briefRoles[$role->getName()] = $role->getDescription();
             }

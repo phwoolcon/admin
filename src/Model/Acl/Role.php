@@ -9,6 +9,8 @@ use Phwoolcon\Model;
  *
  * @method string getDescription()
  * @method string getName()
+ * @method $this setDescription(string $description)
+ * @method $this setName(string $name)
  */
 class Role extends Model
 {
