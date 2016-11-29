@@ -257,29 +257,33 @@ class Acl extends PhalconAcl
                     'resource_name' => $resourceName,
                     'access_name' => $accessName,
                     'pattern' => $pattern,
-                    'alias' => $aliasId = 'alias_' . $id,
                 ],
             ];
+
             $aliasData = array_merge($data, [
-                'id' => $aliasId,
-                'resource' => 'url',
                 'access' => $route->getCompiledPattern(),
                 'is_alias' => 1,
             ]);
+            $aliasIds = [];
+            // Save alias resource
+            foreach ((array)$route->getHttpMethods() as $httpMethod) {
+                $aliasData['resource'] = 'url-' . strtolower($httpMethod);
+                $aliasId = md5($aliasData['resource'] . '|' . $aliasData['access']);
+                $aliasIds[] = $aliasData['id'] = $aliasId;
+                if (!$aliasResource = Resource::findFirstSimple(['id' => $aliasId])) {
+                    $aliasResource = new Resource();
+                }
+                $aliasResource->addData($aliasData);
+                $aliasResource->save();
+            }
 
             // Save resource
+            $data['details']['alias_ids'] = $aliasIds;
             if (!$resource = Resource::findFirstSimple(['id' => $id])) {
                 $resource = new Resource();
             }
             $resource->addData($data);
             $resource->save();
-
-            // Save alias resource
-            if (!$aliasResource = Resource::findFirstSimple(['id' => $aliasId])) {
-                $aliasResource = new Resource();
-            }
-            $aliasResource->addData($aliasData);
-            $aliasResource->save();
         }
     }
 

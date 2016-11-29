@@ -4,6 +4,7 @@ namespace Phwoolcon\Admin\Acl\Adapter;
 use Phalcon\Acl\Adapter\Memory;
 use Phwoolcon\Admin\Model\Acl\Resource;
 use Phwoolcon\Db;
+use Phwoolcon\Text;
 
 class UrlAcl extends Memory
 {
@@ -12,13 +13,13 @@ class UrlAcl extends Memory
 
     public function addResourceAccess($resourceName, $accessList)
     {
-        if ($resourceName == 'url') {
+        if (Text::startsWith($resourceName, 'url')) {
             $list = (array)$accessList;
             foreach ($list as $accessName) {
                 if ($accessName{0} == '#') {
-                    $this->regexUrls[$accessName] = $accessName;
+                    $this->regexUrls[$resourceName][$accessName] = $accessName;
                 } else {
-                    $this->normalUrls[$accessName] = $accessName;
+                    $this->normalUrls[$resourceName][$accessName] = $accessName;
                 }
             }
         }
@@ -37,11 +38,14 @@ class UrlAcl extends Memory
 
     public function isAllowed($roleName, $resourceName, $access, array $parameters = null)
     {
-        if ($resourceName == 'url' && !isset($this->normalUrls[$access])) {
-            foreach ($this->regexUrls as $pattern) {
-                if (preg_match($pattern, $access)) {
-                    $access = $pattern;
-                    break;
+        if (Text::startsWith($resourceName, 'url')) {
+            $resourceName = strtolower($resourceName);
+            if (!isset($this->normalUrls[$resourceName][$access])) {
+                foreach (fnGet($this->regexUrls, $resourceName, []) as $pattern) {
+                    if (preg_match($pattern, $access)) {
+                        $access = $pattern;
+                        break;
+                    }
                 }
             }
         }
