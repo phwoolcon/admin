@@ -187,6 +187,16 @@ class Acl extends PhalconAcl
         static::$di = $di;
         static::$config = Config::get('admin.acl');
         Events::attach('cache:after_clear', function (Event $event, $source) {
+            try {
+                $db = Db::connection();
+            } catch (\Exception $e) {
+                return;
+            }
+            $resourceReflection = new ReflectionClass(Resource::class);
+            $properties = $resourceReflection->getDefaultProperties();
+            if (!$db->tableExists(fnGet($properties, '_table'))) {
+                return;
+            }
             static::refreshDb();
             if ($source instanceof Command) {
                 $source->info('ACL refreshed.');
