@@ -172,9 +172,12 @@ class Acl extends PhalconAcl
 
     public static function refreshDb()
     {
+        $db = Db::connection();
+        $db->begin();
         static::truncateResources();
         static::saveControllerResources();
         static::saveStaticResources();
+        $db->commit();
         static::refreshCache();
     }
 
