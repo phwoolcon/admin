@@ -11,9 +11,18 @@ use Phwoolcon\Model;
  *
  * @property array  $brief_roles
  * @property Role[]|\Phalcon\Mvc\Model\Resultset\Simple $roles
+ *
+ * @method string getStatus()
  */
 class Admin extends Model
 {
+    const STATUS_NORMAL = 'normal';
+    const STATUS_BANNED = 'banned';
+
+    protected static $statusLabels = [
+        self::STATUS_NORMAL => '正常',
+        self::STATUS_BANNED => '禁用',
+    ];
     protected $_table = 'admins';
     protected $_useDistributedId = false;
     protected $_jsonFields = ['brief_roles'];
@@ -25,6 +34,17 @@ class Admin extends Model
     public function getBriefRoles()
     {
         return $this->brief_roles ?: [];
+    }
+
+    public function getStatusLabel($status = null)
+    {
+        $status === null and $status = $this->getStatus();
+        return isset(static::$statusLabels[$status]) ? __(static::$statusLabels[$status]) : '';
+    }
+
+    public static function getStatuses()
+    {
+        return static::$statusLabels;
     }
 
     public function initialize()
