@@ -2,6 +2,8 @@
 namespace Phwoolcon\Admin\Model\Acl;
 
 use Phalcon\Acl\Role as PhalconRole;
+use Phwoolcon\Admin\Model\Admin;
+use Phwoolcon\Admin\Model\AdminRole;
 use Phwoolcon\Cache;
 use Phwoolcon\Config;
 use Phwoolcon\Model;
@@ -11,7 +13,9 @@ use Phwoolcon\Model\Config as ConfigModel;
  * Class Role
  * @package Phwoolcon\Admin\Model\Acl
  *
+ * @property AdminRole[] $admin_roles
  * @property string $description
+ * @property Grant[] $grants
  * @property string $name
  * @method string getDescription()
  * @method string getName()
@@ -27,9 +31,44 @@ class Role extends Model
     protected $_table = 'admin_acl_roles';
     protected $_useDistributedId = false;
 
+    public function beforeDelete()
+    {
+        $affectedAdmins = [];
+        foreach ($this->admin_roles as $adminRole) {
+            if ($admin = $adminRole->getAdmin()) {
+                $affectedAdmins[] = $admin;
+            }
+        }
+        $this->_additionalData['delete_affected_admins'] = $affectedAdmins;
+        return true;
+    }
+
+    public function afterDelete()
+    {
+        // Delete ACL grants
+        foreach ($this->grants as $grant) {
+            $grant->delete();
+        }
+
+        // Delete admin assignations
+        /* @var Admin $admin */
+        foreach ($this->_additionalData['delete_affected_admins'] as $admin) {
+            $admin->save();
+        }
+        unset($this->_additionalData['delete_affected_admins']);
+        Cache::delete(static::CACHE_KEY_ROLE_OPTIONS);
+    }
+
     public function canDelete()
     {
         return !$this->isDefault() && !$this->isSuperuser();
+    }
+
+    public function initialize()
+    {
+        parent::initialize();
+        $this->hasMany('id', Grant::class, 'role_id', ['alias' => 'grants']);
+        $this->hasMany('id', AdminRole::class, 'role_id', ['alias' => 'admin_roles']);
     }
 
     public function isDefault()

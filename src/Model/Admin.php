@@ -9,9 +9,10 @@ use Phwoolcon\Model;
  * Class Admin
  * @package Phwoolcon\Admin\Model
  *
- * @property array  $brief_roles
+ * @property array                                      $brief_roles
  * @property Role[]|\Phalcon\Mvc\Model\Resultset\Simple $roles
  *
+ * @method Role[]|\Phalcon\Mvc\Model\Resultset\Simple getRoles()
  * @method string getStatus()
  */
 class Admin extends Model
@@ -57,18 +58,25 @@ class Admin extends Model
 
     protected function prepareSave()
     {
-        $briefRoles = [];
-        if ($this->_isNew && !count($this->roles)) {
-            $roleModel = Role::class;
-            if ($this->_dependencyInjector->has($roleModel)) {
-                $roleModel = $this->_dependencyInjector->getRaw($roleModel);
+        // Assign default role if no roles assigned
+        if (!count($this->roles)) {
+
+            $configKey = Role::CONFIG_KEY_DEFAULT_ROLE;
+            // Assign superuser role for first admin
+            if ($this->_isNew && !static::findFirst()) {
+                $configKey = Role::CONFIG_KEY_SUPERUSER_ROLE;
             }
+            $roleName = Config::get($configKey);
+
             /* @var Role $roleModel */
-            $roleName = Config::get(static::findFirst() ? 'admin.acl.default_role' : 'admin.acl.superuser_role');
+            $roleModel = $this->getInjectedClass(Role::class);
             $defaultRole = $roleModel::findFirstSimple(['name' => $roleName]);
             $this->roles = [$defaultRole];
             $this->_related['roles'] = [$defaultRole];
         }
+
+        // Update brief roles
+        $briefRoles = [];
         if (count($this->roles)) {
             foreach ($this->roles as $role) {
                 $briefRoles[$role->getName()] = $role->getDescription();
