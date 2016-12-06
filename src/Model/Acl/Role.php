@@ -22,13 +22,24 @@ class Role extends Model
 {
     const CACHE_KEY_ROLE_OPTIONS = 'admin-role-options';
     const CONFIG_KEY_DEFAULT_ROLE = 'admin.acl.default_role';
+    const CONFIG_KEY_SUPERUSER_ROLE = 'admin.acl.superuser_role';
 
     protected $_table = 'admin_acl_roles';
     protected $_useDistributedId = false;
 
+    public function canDelete()
+    {
+        return !$this->isDefault() && !$this->isSuperuser();
+    }
+
     public function isDefault()
     {
         return $this->getName() == Config::get(static::CONFIG_KEY_DEFAULT_ROLE);
+    }
+
+    public function isSuperuser()
+    {
+        return $this->getName() == Config::get(static::CONFIG_KEY_SUPERUSER_ROLE);
     }
 
     public function toPhalconRole()
