@@ -3,7 +3,9 @@ namespace Phwoolcon\Admin\Model\Acl;
 
 use Phalcon\Acl\Role as PhalconRole;
 use Phwoolcon\Cache;
+use Phwoolcon\Config;
 use Phwoolcon\Model;
+use Phwoolcon\Model\Config as ConfigModel;
 
 /**
  * Class Role
@@ -19,9 +21,15 @@ use Phwoolcon\Model;
 class Role extends Model
 {
     const CACHE_KEY_ROLE_OPTIONS = 'admin-role-options';
+    const CONFIG_KEY_DEFAULT_ROLE = 'admin.acl.default_role';
 
     protected $_table = 'admin_acl_roles';
     protected $_useDistributedId = false;
+
+    public function isDefault()
+    {
+        return $this->getName() == Config::get(static::CONFIG_KEY_DEFAULT_ROLE);
+    }
 
     public function toPhalconRole()
     {
@@ -45,5 +53,14 @@ class Role extends Model
             Cache::set($cacheKey, $options);
         }
         return $options;
+    }
+
+    public function setAsDefault()
+    {
+        if ($name = $this->getName()) {
+            ConfigModel::saveConfig(static::CONFIG_KEY_DEFAULT_ROLE, $name);
+            return true;
+        }
+        return false;
     }
 }
