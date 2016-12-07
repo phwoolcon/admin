@@ -72,14 +72,16 @@ class Role extends Model
         $this->hasMany('id', AdminRole::class, 'role_id', ['alias' => 'admin_roles']);
     }
 
-    public function isDefault()
+    public function isDefault($name = null)
     {
-        return $this->getName() == Config::get(static::CONFIG_KEY_DEFAULT_ROLE);
+        $name === null and $name = $this->getName();
+        return $name == Config::get(static::CONFIG_KEY_DEFAULT_ROLE);
     }
 
-    public function isSuperuser()
+    public function isSuperuser($name = null)
     {
-        return $this->getName() == Config::get(static::CONFIG_KEY_SUPERUSER_ROLE);
+        $name === null and $name = $this->getName();
+        return $name == Config::get(static::CONFIG_KEY_SUPERUSER_ROLE);
     }
 
     public function toPhalconRole()
@@ -89,6 +91,14 @@ class Role extends Model
 
     protected function afterSave()
     {
+        if (!$this->_isNew) {
+            // Update superuser role name in config, if name changed
+            $originName = fnGet($this->_snapshot, 'name');
+            $currentName = $this->getName();
+            if ($originName != $currentName && $this->isSuperuser($originName)) {
+                ConfigModel::saveConfig(static::CONFIG_KEY_SUPERUSER_ROLE, $currentName);
+            }
+        }
         parent::afterSave();
         Cache::delete(static::CACHE_KEY_ROLE_OPTIONS);
     }
