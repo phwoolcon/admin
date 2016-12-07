@@ -48,6 +48,11 @@ class Admin extends Model
         return static::$statusLabels;
     }
 
+    public function hasRole($roleName)
+    {
+        return isset($this->brief_roles[$roleName]);
+    }
+
     public function initialize()
     {
         parent::initialize();
