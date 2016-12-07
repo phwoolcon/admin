@@ -50,6 +50,7 @@ class Admin extends Model
 
     public function hasRole($roleName)
     {
+        $roleName instanceof Role and $roleName = $roleName->getName();
         return isset($this->brief_roles[$roleName]);
     }
 
