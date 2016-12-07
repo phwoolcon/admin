@@ -14,9 +14,9 @@ use Phwoolcon\Model\Config as ConfigModel;
  * @package Phwoolcon\Admin\Model\Acl
  *
  * @property AdminRole[] $admin_roles
- * @property string $description
- * @property Grant[] $grants
- * @property string $name
+ * @property string      $description
+ * @property Grant[]     $grants
+ * @property string      $name
  * @method string getDescription()
  * @method string getName()
  * @method $this setDescription(string $description)
@@ -27,6 +27,11 @@ class Role extends Model
     const CACHE_KEY_ROLE_OPTIONS = 'admin-role-options';
     const CONFIG_KEY_DEFAULT_ROLE = 'admin.acl.default_role';
     const CONFIG_KEY_SUPERUSER_ROLE = 'admin.acl.superuser_role';
+
+    /**
+     * @var static[]
+     */
+    protected static $specialRoles = [];
 
     protected $_table = 'admin_acl_roles';
     protected $_useDistributedId = false;
@@ -63,6 +68,26 @@ class Role extends Model
     public function canDelete()
     {
         return !$this->isDefault() && !$this->isSuperuser();
+    }
+
+    public static function getDefaultRole()
+    {
+        if (!isset(static::$specialRoles['default'])) {
+            static::$specialRoles['default'] = static::findFirstSimple([
+                'name' => Config::get(static::CONFIG_KEY_DEFAULT_ROLE),
+            ]);
+        }
+        return static::$specialRoles['default'];
+    }
+
+    public static function getSuperuserRole()
+    {
+        if (!isset(static::$specialRoles['superuser'])) {
+            static::$specialRoles['superuser'] = static::findFirstSimple([
+                'name' => Config::get(static::CONFIG_KEY_SUPERUSER_ROLE),
+            ]);
+        }
+        return static::$specialRoles['superuser'];
     }
 
     public function initialize()
