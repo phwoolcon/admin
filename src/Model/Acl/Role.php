@@ -49,6 +49,7 @@ class Role extends Model
         foreach ($this->grants as $grant) {
             $grant->delete();
         }
+        AdminRole::findSimple(['role_id' => $this->getId()])->delete();
 
         // Delete admin assignations
         /* @var Admin $admin */
