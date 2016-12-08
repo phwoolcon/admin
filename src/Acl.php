@@ -48,6 +48,7 @@ class Acl extends PhalconAcl
     protected static function clearCache()
     {
         Cache::delete(static::$config['cache_key']);
+        static::$adapter = null;
     }
 
     public static function load()
@@ -85,6 +86,59 @@ class Acl extends PhalconAcl
         /* @var Route[] $routes */
         $routes = $router->getRoutes();
         return $routes;
+    }
+
+    /**
+     * @param Role  $role
+     * @param array $resources
+     * @throws \Exception
+     */
+    public static function grant(Role $role, array $resources)
+    {
+        $di = static::$di;
+        $roleId = $role->getId();
+        /* @var Grant $grantClass */
+        $grantClass = Grant::class;
+        $di->has($grantClass) and $grantClass = $di->getRaw($grantClass);
+        if ($resources) {
+            if (!reset($resources) instanceof Resource) {
+                $modelsManager = $role->getModelsManager();
+                $builder = $modelsManager->createBuilder();
+                $builder->from(Resource::class)->inWhere('id', $resources);
+                $resources = $builder->getQuery()->execute();
+            }
+            $grants = [];
+            foreach ($resources as $resource) {
+                $resourceId = $resource->getId();
+                $grants[$resourceId] = [
+                    'role_id' => $roleId,
+                    'resource_id' => $resourceId,
+                ];
+                foreach ($resource->getAliasIds() as $aliasId) {
+                    $grants[$aliasId] = [
+                        'role_id' => $roleId,
+                        'resource_id' => $aliasId,
+                    ];
+                }
+            }
+            /* @var Grant $grantModel */
+            $grantModel = new $grantClass;
+            $db = Db::connection();
+            $db->begin();
+            try {
+                $grantClass::findSimple(['role_id' => $roleId])->delete();
+                foreach ($grants as $grant) {
+                    $db->insertAsDict($grantModel->getSource(), $grant);
+                }
+                $db->commit();
+            } catch (\Exception $e) {
+                $db->rollback();
+                throw $e;
+            }
+        } else {
+            $grantClass::findSimple(['role_id' => $roleId])->delete();
+        }
+        static::clearCache();
     }
 
     public static function isAllowed(Admin $user, $resourceName, $access, array $parameters = null)
@@ -179,10 +233,6 @@ class Acl extends PhalconAcl
         static::saveStaticResources();
         $db->commit();
         static::refreshCache();
-    }
-
-    public static function saveGrants()
-    {
     }
 
     public static function register(Di $di)

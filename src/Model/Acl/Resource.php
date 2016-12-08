@@ -18,4 +18,10 @@ class Resource extends Model
     protected $_useDistributedId = false;
 
     protected $_jsonFields = ['details'];
+
+    public function getAliasIds()
+    {
+        $details = $this->getDetails();
+        return isset($details['alias_ids']) ? $details['alias_ids'] : [];
+    }
 }
