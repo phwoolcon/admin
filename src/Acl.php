@@ -157,7 +157,7 @@ class Acl extends PhalconAcl
     public static function isAllowed(Admin $user, $resourceName, $access, array $parameters = null)
     {
         static::$adapter === null and static::load();
-        $roles = $user->getBriefRoles();
+        $roles = $user->brief_roles;
         if (isset($roles[static::$config['superuser_role']])) {
             return true;
         }
