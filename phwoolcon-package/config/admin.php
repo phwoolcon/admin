@@ -29,6 +29,9 @@ return [
     ],
     'acl' => [
         'cache_key' => 'admin_acl_adapter',
+        'cache_time_key' => 'admin_acl_time',
+        'local_cache_file' => 'admin-acl.php',
+        'local_cache_time_file' => 'admin-acl-time.php',
         'superuser_role' => 'admin',
         'default_role' => 'default',
     ],

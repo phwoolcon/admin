@@ -32,12 +32,17 @@ class Acl extends PhalconAcl
     protected static $adapter;
     protected static $config = [
         'cache_key' => 'admin_acl_adapter',
+        'cache_time_key' => 'admin_acl_time',
+        'local_cache_file' => 'admin-acl.php',
+        'local_cache_time_file' => 'admin-acl-time.php',
         'superuser_role' => 'admin',
     ];
     /**
      * @var Di
      */
     protected static $di;
+    protected static $localCacheFile;
+    protected static $localCacheTimeFile;
 
     public static function __callStatic($name, $arguments)
     {
@@ -48,7 +53,15 @@ class Acl extends PhalconAcl
     protected static function clearCache()
     {
         Cache::delete(static::$config['cache_key']);
+        Cache::delete(static::$config['cache_time_key']);
+        static::clearLocalCache();
         static::$adapter = null;
+    }
+
+    protected static function clearLocalCache()
+    {
+        is_file($file = static::$localCacheFile) and unlink($file);
+        is_file($file = static::$localCacheTimeFile) and unlink($file);
     }
 
     public static function load()
@@ -158,8 +171,12 @@ class Acl extends PhalconAcl
 
     protected static function loadFromCache()
     {
+        if (static::loadFromLocalCache()) {
+            return true;
+        }
         if (($adapter = Cache::get(static::$config['cache_key'])) instanceof PhalconAcl\AdapterInterface) {
             static::$adapter = $adapter;
+            static::saveLocalCache();
             return true;
         }
         return false;
@@ -174,13 +191,16 @@ class Acl extends PhalconAcl
         /* @var UrlAcl $adapter */
         $adapter = new $class;
         $adapter->setDefaultAction(static::DENY);
+        $adapter->setGeneratedAt((int)(microtime(true) * 1e3));
 
         // Load roles
         /* @var Role $roleClass */
         $roleClass = Role::class;
         $di->has($roleClass) and $roleClass = $di->getRaw($roleClass);
         /* @var Role[] $roles */
-        $roles = $roleClass::find();
+        if (!$roles = $roleClass::find()) {
+            return false;
+        }
         $rolesMap = [];
         foreach ($roles as $role) {
             $adapter->addRole($role->toPhalconRole());
@@ -192,7 +212,9 @@ class Acl extends PhalconAcl
         $resourceClass = Resource::class;
         $di->has($resourceClass) and $resourceClass = $di->getRaw($resourceClass);
         /* @var \Phwoolcon\Admin\Model\Acl\Resource[] $resources */
-        $resources = $resourceClass::find();
+        if (!$resources = $resourceClass::find()) {
+            return false;
+        }
         $resourcesMap = [];
         foreach ($resources as $resource) {
             $adapter->addResource($resource->getResource(), $resource->getAccess());
@@ -218,6 +240,31 @@ class Acl extends PhalconAcl
         return true;
     }
 
+    protected static function loadFromLocalCache()
+    {
+        // Check remote cache validity
+        if (!$remoteCacheTime = Cache::get(static::$config['cache_time_key'])) {
+            return false;
+        }
+        try {
+            // Check local cache existence
+            if (!is_file(static::$localCacheFile) || !is_file(static::$localCacheTimeFile)) {
+                return false;
+            }
+            // Check local cache validity
+            $localCacheTime = include static::$localCacheTimeFile;
+            if ($localCacheTime == $remoteCacheTime && $cacheContent = include static::$localCacheFile) {
+                if (($adapter = unserialize($cacheContent)) instanceof PhalconAcl\AdapterInterface) {
+                    static::$adapter = $adapter;
+                    return true;
+                }
+            }
+        } catch (\Exception $e) {
+            static::clearLocalCache();
+        }
+        return false;
+    }
+
     public static function refreshCache()
     {
         static::clearCache();
@@ -238,7 +285,9 @@ class Acl extends PhalconAcl
     public static function register(Di $di)
     {
         static::$di = $di;
-        static::$config = Config::get('admin.acl');
+        static::$config = array_merge(static::$config, Config::get('admin.acl'));
+        static::$localCacheFile = storagePath('cache/' . static::$config['local_cache_file']);
+        static::$localCacheTimeFile = storagePath('cache/' . static::$config['local_cache_time_file']);
         Events::attach('cache:after_clear', function (Event $event, $source) {
             try {
                 $db = Db::connection();
@@ -260,6 +309,15 @@ class Acl extends PhalconAcl
     protected static function saveCache()
     {
         Cache::set(static::$config['cache_key'], static::$adapter);
+        Cache::set(static::$config['cache_time_key'], static::$adapter->getGeneratedAt());
+        static::saveLocalCache();
+    }
+
+    protected static function saveLocalCache()
+    {
+        $adapter = static::$adapter;
+        fileSaveArray(static::$localCacheTimeFile, $adapter->getGeneratedAt());
+        fileSaveArray(static::$localCacheFile, serialize($adapter));
     }
 
     protected static function saveControllerResources()

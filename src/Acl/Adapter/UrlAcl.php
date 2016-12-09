@@ -8,6 +8,7 @@ use Phwoolcon\Text;
 
 class UrlAcl extends Memory
 {
+    protected $generatedAt;
     protected $regexUrls = [];
     protected $normalUrls = [];
 
@@ -36,6 +37,11 @@ class UrlAcl extends Memory
         return $this->_accessList;
     }
 
+    public function getGeneratedAt()
+    {
+        return $this->generatedAt;
+    }
+
     public function isAllowed($roleName, $resourceName, $access, array $parameters = null)
     {
         if (Text::startsWith($resourceName, 'url')) {
@@ -50,5 +56,11 @@ class UrlAcl extends Memory
             }
         }
         return parent::isAllowed($roleName, $resourceName, $access, $parameters);
+    }
+
+    public function setGeneratedAt($time)
+    {
+        $this->generatedAt = $time;
+        return $this;
     }
 }
