@@ -15,6 +15,8 @@ use Phwoolcon\Model;
  */
 class AdminRole extends Model
 {
+    use \AdminRolesModelTrait;
+
     protected $_table = 'admin_roles';
     protected $_useDistributedId = false;
 

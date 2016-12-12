@@ -6,14 +6,11 @@ use Phwoolcon\Model;
 /**
  * Class Resource
  * @package Phwoolcon\Admin\Model\Acl
- *
- * @method string getAccess()
- * @method array getDetails()
- * @method string getIsAlias()
- * @method string getResource()
  */
 class Resource extends Model
 {
+    use \AdminAclResourcesModelTrait;
+
     protected $_table = 'admin_acl_resources';
     protected $_useDistributedId = false;
 

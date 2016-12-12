@@ -9,7 +9,6 @@ use Phwoolcon\Model;
  * Class Admin
  * @package Phwoolcon\Admin\Model
  *
- * @property array                                      $brief_roles
  * @property Role[]|\Phalcon\Mvc\Model\Resultset\Simple $roles
  *
  * @method Role[]|\Phalcon\Mvc\Model\Resultset\Simple getRoles()
@@ -17,6 +16,8 @@ use Phwoolcon\Model;
  */
 class Admin extends Model
 {
+    use \AdminsModelTrait;
+
     const STATUS_NORMAL = 'normal';
     const STATUS_BANNED = 'banned';
 

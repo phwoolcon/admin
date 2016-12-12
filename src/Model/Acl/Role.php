@@ -14,16 +14,12 @@ use Phwoolcon\Model\Config as ConfigModel;
  * @package Phwoolcon\Admin\Model\Acl
  *
  * @property AdminRole[] $admin_roles
- * @property string      $description
  * @property Grant[]     $grants
- * @property string      $name
- * @method string getDescription()
- * @method string getName()
- * @method $this setDescription(string $description)
- * @method $this setName(string $name)
  */
 class Role extends Model
 {
+    use \AdminAclRolesModelTrait;
+
     const CACHE_KEY_ROLE_OPTIONS = 'admin-role-options';
     const CONFIG_KEY_DEFAULT_ROLE = 'admin.acl.default_role';
     const CONFIG_KEY_SUPERUSER_ROLE = 'admin.acl.superuser_role';
