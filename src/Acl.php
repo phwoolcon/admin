@@ -288,7 +288,7 @@ class Acl extends PhalconAcl
         static::$config = array_merge(static::$config, Config::get('admin.acl'));
         static::$localCacheFile = storagePath('cache/' . static::$config['local_cache_file']);
         static::$localCacheTimeFile = storagePath('cache/' . static::$config['local_cache_time_file']);
-        Events::attach('cache:after_clear', function (Event $event, $source) {
+        Events::attach('cache:after_clear', function (Event $event, $messages) {
             try {
                 $db = Db::connection();
             } catch (\Exception $e) {
@@ -300,9 +300,7 @@ class Acl extends PhalconAcl
                 return;
             }
             static::refreshDb();
-            if ($source instanceof Command) {
-                $source->info('ACL refreshed.');
-            }
+            $messages[] = 'ACL refreshed.';
         });
     }
 
