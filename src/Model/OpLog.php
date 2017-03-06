@@ -32,4 +32,13 @@ class OpLog extends Model
         ]);
         return $log->save();
     }
+
+    public static function getActionOptions()
+    {
+        $actions = [];
+        foreach (static::query()->columns('action')->groupBy('action')->execute() as $action) {
+            $actions[$action->action] = $action->action;
+        }
+        return $actions;
+    }
 }
