@@ -285,7 +285,7 @@ class Acl extends PhalconAcl
     public static function register(Di $di)
     {
         static::$di = $di;
-        static::$config = array_merge(static::$config, Config::get('admin.acl'));
+        static::$config = array_merge(static::$config, (array)Config::get('admin.acl'));
         static::$localCacheFile = storagePath('cache/' . static::$config['local_cache_file']);
         static::$localCacheTimeFile = storagePath('cache/' . static::$config['local_cache_time_file']);
         Events::attach('cache:after_clear', function (Event $event, $messages) {
