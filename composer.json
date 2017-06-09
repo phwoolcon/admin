@@ -22,9 +22,6 @@
     "autoload": {
         "psr-4": {"Phwoolcon\\Admin\\": "src"}
     },
-    "bin": [
-        "phwoolcon-package/phwoolcon-package-admin.php"
-    ],
     "extra": {
         "branch-alias": {
             "dev-master": "1.0.x-dev"
