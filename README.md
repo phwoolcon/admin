@@ -17,7 +17,7 @@ To skip ACL check for a whole controller, please set property `$skipAcl` as `tru
 To skip ACL check for a method, please set add a key-value `'methodName' => true,` in property `$skipAclMethod`.
 
 ### How to apply ACL
-ACL will SHOULD be applied in the controller method `initialze()`.
+ACL SHOULD be applied in the controller method `initialze()`.
 
 1. Use `Phwoolcon\Admin\Auth::getUser()` to get logged in admin user;
 1. Process `$skipAcl` and `$skipAclMethod`.
