@@ -6,12 +6,13 @@ use Phalcon\Di;
 use Phalcon\Security;
 use Phwoolcon\Admin\Auth\Adapter\Generic;
 use Phwoolcon\Admin\Model\Admin;
-use Phwoolcon\Auth\Adapter\Exception;
 use Phwoolcon\Auth\AdapterInterface;
 use Phwoolcon\Config;
+use Phwoolcon\Exception\InvalidConfigException as Exception;
 
 /**
  * Class Admin
+ *
  * @package Phwoolcon\Admin
  */
 class Auth
